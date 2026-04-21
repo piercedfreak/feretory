@@ -1,6 +1,6 @@
 {
   "name": "feretory",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "main": "main.js",
   "author": "piercedfreak",
   "license": "GPL-3.0-only",
@@ -11,7 +11,7 @@
   },
   "build": {
     "appId": "com.piercedfreak.feretory",
-    "productName": "Feretory",
+    "productName": "feretory",
     "win": {
       "target": "nsis",
       "icon": "assets/icon.ico"
