@@ -121,6 +121,10 @@ ipcRenderer.on("plugins", (_event, plugins) => {
   console.log("Loaded plugins:", plugins);
 });
 
+ipcRenderer.on("plugin-folder", (_event, folderPath) => {
+  console.log("Plugin folder:", folderPath);
+});
+
 window.onload = () => {
   ipcRenderer.send("request-cache");
   ipcRenderer.send("list-plugins");
