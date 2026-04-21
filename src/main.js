@@ -180,7 +180,7 @@ async function getHTML(url) {
     const res = await axios.get(url, {
       timeout: 8000,
       headers: {
-        "User-Agent": "feretory/1.1"
+        "User-Agent": "feretory/1.5.0"
       }
     });
     return res.data;
@@ -207,7 +207,7 @@ async function getJSON(url) {
     const res = await axios.get(url, {
       timeout: 8000,
       headers: {
-        "User-Agent": "feretory/1.1"
+        "User-Agent": "feretory/1.0.0"
       }
     });
     return res.data;
@@ -305,7 +305,7 @@ async function scan() {
 
       if (shouldNotify) {
         new Notification({
-          title: "feretory Alert",
+          title: "feretory alert",
           body: top.text
         }).show();
 
