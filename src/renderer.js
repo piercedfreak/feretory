@@ -1,6 +1,6 @@
 const { ipcRenderer } = require("electron");
 
-console.log("feretory UI Loaded");
+console.log("feretory UI loaded");
 
 let sounds = {
   HIGH: null,
