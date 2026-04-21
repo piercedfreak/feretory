@@ -1,6 +1,6 @@
 {
   "name": "feretory",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Desktop monitor for Diablo IV freebies and promotions.",
   "main": "main.js",
   "author": "piercedfreak",
@@ -28,6 +28,7 @@
       "renderer.js",
       "index.html",
       "assets/**/*",
+      "plugins/**/*",
       "package.json"
     ],
     "win": {
