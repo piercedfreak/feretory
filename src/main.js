@@ -8,6 +8,7 @@ const {
 } = require("electron");
 
 const path = require("path");
+const fs = require("fs");
 const axios = require("axios");
 const cheerio = require("cheerio");
 const Store = require("electron-store").default;
@@ -18,12 +19,6 @@ let win;
 let tray;
 let timer = null;
 let busy = false;
-
-const SOURCES = [
-  { name: "Blizzard News", url: "https://news.blizzard.com/en-us/diablo4", type: "html" },
-  { name: "Forums", url: "https://us.forums.blizzard.com/en/d4/", type: "html" },
-  { name: "Reddit", url: "https://www.reddit.com/r/diablo4/new/.json", type: "json" }
-];
 
 function defaultSettings() {
   return {
@@ -175,12 +170,39 @@ function inQuietHours() {
   return current >= start || current < end;
 }
 
+function loadPlugins() {
+  const pluginsDir = path.join(__dirname, "plugins");
+
+  try {
+    if (!fs.existsSync(pluginsDir)) {
+      addLog("Plugins folder not found");
+      return [];
+    }
+
+    const files = fs.readdirSync(pluginsDir)
+      .filter((file) => file.endsWith(".json"));
+
+    const plugins = files.map((file) => {
+      const fullPath = path.join(pluginsDir, file);
+      const raw = fs.readFileSync(fullPath, "utf8");
+      return JSON.parse(raw);
+    });
+
+    const enabled = plugins.filter((plugin) => plugin.enabled);
+    addLog(`Loaded ${enabled.length} plugin source(s)`);
+    return enabled;
+  } catch (err) {
+    addLog(`Plugin load failed: ${err.message}`);
+    return [];
+  }
+}
+
 async function getHTML(url) {
   try {
     const res = await axios.get(url, {
       timeout: 8000,
       headers: {
-        "User-Agent": "feretory/1.0.0"
+        "User-Agent": "feretory/1.1.0"
       }
     });
     return res.data;
@@ -190,13 +212,16 @@ async function getHTML(url) {
   }
 }
 
-function parseHTML(html) {
+function parseHTML(html, selectors = ["h1", "h2", "h3", "a", "p"]) {
   const $ = cheerio.load(html);
   const out = [];
+  const selectorString = selectors.join(",");
 
-  $("h1,h2,h3,a,p").each((_, el) => {
+  $(selectorString).each((_, el) => {
     const text = $(el).text().trim();
-    if (text.length > 8 && text.length < 160) out.push(text);
+    if (text.length > 8 && text.length < 160) {
+      out.push(text);
+    }
   });
 
   return out;
@@ -207,7 +232,7 @@ async function getJSON(url) {
     const res = await axios.get(url, {
       timeout: 8000,
       headers: {
-        "User-Agent": "feretory/1.0.0"
+        "User-Agent": "feretory/1.1.0"
       }
     });
     return res.data;
@@ -217,15 +242,28 @@ async function getJSON(url) {
   }
 }
 
-function parseReddit(json) {
+function getNestedValue(obj, pathStr) {
+  return pathStr.split(".").reduce((acc, part) => {
+    if (acc && Object.prototype.hasOwnProperty.call(acc, part)) {
+      return acc[part];
+    }
+    return undefined;
+  }, obj);
+}
+
+function parseJSONWithPlugin(json, plugin) {
   const out = [];
-  try {
-    json.data.children.forEach((post) => {
-      out.push(post.data.title);
-    });
-  } catch {
-    addLog("Reddit parse failed");
+  const items = getNestedValue(json, plugin.jsonPath);
+
+  if (!Array.isArray(items)) return out;
+
+  for (const item of items) {
+    const value = getNestedValue(item, plugin.jsonField);
+    if (typeof value === "string" && value.trim().length > 8) {
+      out.push(value.trim());
+    }
   }
+
   return out;
 }
 
@@ -244,27 +282,38 @@ async function scan() {
 
     const seen = store.get("seen") || {};
     let found = [];
+    const sources = loadPlugins();
 
-    for (let i = 0; i < SOURCES.length; i++) {
-      const src = SOURCES[i];
+    if (sources.length === 0) {
+      addLog("No plugins enabled");
+    }
+
+    for (let i = 0; i < sources.length; i++) {
+      const src = sources[i];
+      const baseProgress = 20;
+      const progressStep = sources.length > 0 ? Math.floor(60 / sources.length) : 0;
 
       send("stage", `Checking ${src.name}`);
-      send("progress", 25 + i * 20);
+      send("progress", baseProgress + i * progressStep);
 
       let items = [];
 
       if (src.type === "html") {
         const html = await getHTML(src.url);
-        if (html) items = parseHTML(html);
+        if (html) {
+          items = parseHTML(html, src.selectors || ["h1", "h2", "h3", "a", "p"]);
+        }
       }
 
       if (src.type === "json") {
         const json = await getJSON(src.url);
-        if (json) items = parseReddit(json);
+        if (json) {
+          items = parseJSONWithPlugin(json, src);
+        }
       }
 
       for (const text of items) {
-        const key = text.toLowerCase();
+        const key = `${src.name}:${text.toLowerCase()}`;
         if (seen[key]) continue;
 
         const s = score(text);
@@ -356,6 +405,10 @@ ipcMain.on("request-cache", () => {
   send("logs", store.get("logs") || []);
   send("stage", "Ready");
   send("progress", 0);
+});
+
+ipcMain.on("list-plugins", () => {
+  send("plugins", loadPlugins());
 });
 
 app.whenReady().then(() => {
