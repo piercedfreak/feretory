@@ -77,7 +77,7 @@ function createWindow() {
   win = new BrowserWindow({
     width: 1180,
     height: 820,
-    title: "Feretory",
+    title: "feretory",
     show: !set.startMinimized,
     icon: path.join(__dirname, "assets", "icon.png"),
     webPreferences: {
@@ -101,7 +101,7 @@ function createTray() {
 
   const menu = Menu.buildFromTemplate([
     {
-      label: "Open Feretory",
+      label: "Open feretory",
       click: () => {
         if (win) win.show();
       }
@@ -121,7 +121,7 @@ function createTray() {
     }
   ]);
 
-  tray.setToolTip("Feretory");
+  tray.setToolTip("feretory");
   tray.setContextMenu(menu);
 
   tray.on("double-click", () => {
@@ -180,7 +180,7 @@ async function getHTML(url) {
     const res = await axios.get(url, {
       timeout: 8000,
       headers: {
-        "User-Agent": "Feretory/1.1"
+        "User-Agent": "feretory/1.1"
       }
     });
     return res.data;
@@ -207,7 +207,7 @@ async function getJSON(url) {
     const res = await axios.get(url, {
       timeout: 8000,
       headers: {
-        "User-Agent": "Feretory/1.1"
+        "User-Agent": "feretory/1.1"
       }
     });
     return res.data;
@@ -305,7 +305,7 @@ async function scan() {
 
       if (shouldNotify) {
         new Notification({
-          title: "Feretory Alert",
+          title: "feretory Alert",
           body: top.text
         }).show();
 
