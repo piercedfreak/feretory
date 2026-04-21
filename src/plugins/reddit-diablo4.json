@@ -1,0 +1,8 @@
+{
+  "name": "Reddit",
+  "url": "https://www.reddit.com/r/diablo4/new/.json",
+  "type": "json",
+  "enabled": true,
+  "jsonPath": "data.children",
+  "jsonField": "data.title"
+}
