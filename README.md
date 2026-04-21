@@ -1,6 +1,9 @@
-# Feretory
+<p align="center">
+  <img src="/src/assets/logo.png" alt="Project Logo" width="200">
+</p>
+# feretory
 
-Feretory is a desktop monitoring tool designed to detect Diablo IV free cosmetic rewards, promotions, event drops, community discoveries, and related signals from public text sources.
+feretory is a desktop monitoring tool designed to detect Diablo IV free cosmetic rewards, promotions, event drops, community discoveries, and related signals from public text sources.
 
 ## Features
 
@@ -34,4 +37,4 @@ GNU GPL v3
 
 ## Disclaimer
 
-Feretory is an independent community project and is not affiliated with or endorsed by Blizzard Entertainment, Diablo IV, Reddit, or any third-party platform.
+feretory is an independent community project and is not affiliated with or endorsed by Blizzard Entertainment, Diablo IV, Reddit, or any third-party platform.
