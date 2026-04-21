@@ -16,7 +16,16 @@ Open-source desktop monitor for Diablo IV freebies, promotions, rewards, and com
 - custom alert sounds
 - quiet hours
 - voice alerts
+- external plugin source system
 - Windows EXE build
+
+## External plugins
+
+After install, plugin files are loaded from the user plugin folder:
+
+`%APPDATA%/feretory/plugins`
+
+You can add new `.json` plugins there and restart the app without rebuilding.
 
 ## Author
 
