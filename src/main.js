@@ -34,7 +34,7 @@ function createMain() {
     width: 1180,
     height: 760,
     show: false,
-    title: "Feretory",
+    title: "feretory",
     icon: path.join(__dirname, "assets/icon.png"),
     webPreferences: {
       nodeIntegration: true,
@@ -58,11 +58,11 @@ function createMain() {
 function createTray() {
   tray = new Tray(path.join(__dirname, "assets/tray.png"));
 
-  tray.setToolTip("Feretory");
+  tray.setToolTip("feretory");
 
   tray.setContextMenu(Menu.buildFromTemplate([
     {
-      label: "Open Feretory",
+      label: "Open feretory",
       click: () => win.show()
     },
     {
