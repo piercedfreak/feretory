@@ -1,8 +1,62 @@
 {
-  "name": "Reddit",
-  "url": "https://www.reddit.com/r/diablo4/new/.json",
-  "type": "json",
+  "id": "reddit-diablo4-new",
+  "name": "Reddit r/diablo4",
+  "description": "Monitors r/diablo4 posts from Reddit's JSON listing feed.",
   "enabled": true,
-  "jsonPath": "data.children",
-  "jsonField": "data.title"
+  "url": "https://www.reddit.com/r/diablo4/new/.json",
+  "method": "GET",
+  "timeoutMs": 20000,
+  "mode": "json-api",
+  "matchMode": "containsAny",
+  "matchAny": [
+    "shop",
+    "cosmetic",
+    "mount",
+    "bundle",
+    "free",
+    "event",
+    "skin",
+    "transmog",
+    "drop",
+    "promotion"
+  ],
+  "matchAll": [],
+  "rejectAny": [],
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "feretory/1.2.0"
+  },
+  "notifications": {
+    "enabled": true,
+    "title": "feretory Reddit hit",
+    "openFirstMatch": true,
+    "maxPerScan": 3
+  },
+  "dedupe": {
+    "enabled": true,
+    "keyFields": [
+      "pluginId",
+      "id"
+    ],
+    "ttlHours": 168
+  },
+  "jsonConfig": {
+    "itemsPath": "$.data.children",
+    "titlePath": "data.title",
+    "subtitlePath": "data.selftext",
+    "linkPath": "data.permalink",
+    "linkTemplate": "https://www.reddit.com{data.permalink}",
+    "pricePath": "",
+    "imagePath": "data.thumbnail",
+    "extraPaths": {
+      "id": "data.id",
+      "author": "data.author",
+      "subreddit": "data.subreddit",
+      "created_utc": "data.created_utc",
+      "num_comments": "data.num_comments",
+      "score": "data.score",
+      "flair": "data.link_flair_text"
+    }
+  },
+  "notes": "Uses Reddit's listing JSON feed for r/diablo4."
 }
