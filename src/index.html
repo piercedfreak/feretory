@@ -3,60 +3,61 @@
 <head>
 <title>Feretory</title>
 <style>
-body{margin:0;font-family:Arial;background:#111;color:#fff}
-.wrap{padding:24px}
-h1{color:#7c5cff}
-button{background:#7c5cff;color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer}
-.card{background:#1c1c22;padding:12px;border-radius:12px;margin-top:10px}
-input,select{margin-top:6px}
-.small{font-size:12px;opacity:.7}
-.bar{height:10px;background:#222;border-radius:10px;overflow:hidden}
-.fill{height:100%;width:0%;background:#7c5cff;transition:.25s}
+body{
+margin:0;
+font-family:Arial;
+background:#111;
+color:#fff;
+}
+.wrap{
+padding:24px;
+}
+.top{
+display:flex;
+align-items:center;
+gap:14px;
+}
+.top img{
+width:52px;
+height:52px;
+}
+h1{
+margin:0;
+color:#7c5cff;
+text-transform:lowercase;
+}
+.card{
+margin-top:18px;
+padding:16px;
+background:#1c1c22;
+border-radius:14px;
+}
+.small{
+font-size:12px;
+opacity:.7;
+}
 </style>
 </head>
 <body>
+
 <div class="wrap">
 
-<h1>Feretory</h1>
-
-<button onclick="scan()">Scan Now</button>
-
-<div class="bar"><div id="bar" class="fill"></div></div>
-<div id="stage" class="small">Ready</div>
-
-<h3>Elite Audio Settings</h3>
+<div class="top">
+<img src="assets/logo.png">
+<div>
+<h1>feretory</h1>
+<div class="small">Elite Reward Hunter Utility</div>
+</div>
+</div>
 
 <div class="card">
-
-Volume<br>
-<input type="range" min="0" max="100" value="100" id="volume"><br><br>
-
-HIGH Alert Sound
-<input type="file" id="high"><br>
-
-MEDIUM Alert Sound
-<input type="file" id="medium"><br>
-
-LOW Alert Sound
-<input type="file" id="low"><br><br>
-
-<label><input type="checkbox" id="tts"> Enable Voice Alerts</label><br><br>
-
-Quiet Hours Start
-<input type="time" id="quietStart"><br>
-
-Quiet Hours End
-<input type="time" id="quietEnd"><br><br>
-
-<button onclick="save()">Save Settings</button>
-<button onclick="test('HIGH')">Test High</button>
-
+System initialized.<br>
+Tray mode active.<br>
+Scanning sources in background.
 </div>
 
-<h3>Detections</h3>
-<div id="results"></div>
+</div>
 
 <script src="renderer.js"></script>
-</div>
 </body>
 </html>
