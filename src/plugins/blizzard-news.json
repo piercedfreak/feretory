@@ -1,0 +1,7 @@
+{
+  "name": "Blizzard News",
+  "url": "https://news.blizzard.com/en-us/diablo4",
+  "type": "html",
+  "enabled": true,
+  "selectors": ["h1", "h2", "h3", "a", "p"]
+}
