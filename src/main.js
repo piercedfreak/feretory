@@ -170,15 +170,53 @@ function inQuietHours() {
   return current >= start || current < end;
 }
 
-function loadPlugins() {
-  const pluginsDir = path.join(__dirname, "plugins");
+function getExternalPluginsDir() {
+  return path.join(app.getPath("userData"), "plugins");
+}
+
+function getBundledDefaultPluginsDir() {
+  return path.join(__dirname, "plugins-default");
+}
+
+function ensureExternalPluginFolder() {
+  const externalDir = getExternalPluginsDir();
+
+  if (!fs.existsSync(externalDir)) {
+    fs.mkdirSync(externalDir, { recursive: true });
+  }
+
+  return externalDir;
+}
+
+function seedDefaultPlugins() {
+  const externalDir = ensureExternalPluginFolder();
+  const bundledDir = getBundledDefaultPluginsDir();
 
   try {
-    if (!fs.existsSync(pluginsDir)) {
-      addLog("Plugins folder not found");
-      return [];
+    if (!fs.existsSync(bundledDir)) {
+      addLog("Bundled default plugins folder not found");
+      return;
     }
 
+    const files = fs.readdirSync(bundledDir).filter((file) => file.endsWith(".json"));
+
+    for (const file of files) {
+      const sourcePath = path.join(bundledDir, file);
+      const destPath = path.join(externalDir, file);
+
+      if (!fs.existsSync(destPath)) {
+        fs.copyFileSync(sourcePath, destPath);
+      }
+    }
+  } catch (err) {
+    addLog(`Plugin seed failed: ${err.message}`);
+  }
+}
+
+function loadPlugins() {
+  const pluginsDir = ensureExternalPluginFolder();
+
+  try {
     const files = fs.readdirSync(pluginsDir)
       .filter((file) => file.endsWith(".json"));
 
@@ -189,7 +227,7 @@ function loadPlugins() {
     });
 
     const enabled = plugins.filter((plugin) => plugin.enabled);
-    addLog(`Loaded ${enabled.length} plugin source(s)`);
+    addLog(`Loaded ${enabled.length} external plugin source(s)`);
     return enabled;
   } catch (err) {
     addLog(`Plugin load failed: ${err.message}`);
@@ -202,7 +240,7 @@ async function getHTML(url) {
     const res = await axios.get(url, {
       timeout: 8000,
       headers: {
-        "User-Agent": "feretory/1.1.0"
+        "User-Agent": "feretory/1.2.0"
       }
     });
     return res.data;
@@ -232,7 +270,7 @@ async function getJSON(url) {
     const res = await axios.get(url, {
       timeout: 8000,
       headers: {
-        "User-Agent": "feretory/1.1.0"
+        "User-Agent": "feretory/1.2.0"
       }
     });
     return res.data;
@@ -405,6 +443,7 @@ ipcMain.on("request-cache", () => {
   send("logs", store.get("logs") || []);
   send("stage", "Ready");
   send("progress", 0);
+  send("plugin-folder", getExternalPluginsDir());
 });
 
 ipcMain.on("list-plugins", () => {
@@ -413,6 +452,7 @@ ipcMain.on("list-plugins", () => {
 
 app.whenReady().then(() => {
   applyStartupSetting();
+  seedDefaultPlugins();
   createWindow();
   createTray();
   loop();
