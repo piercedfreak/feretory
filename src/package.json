@@ -1,18 +1,10 @@
 {
   "name": "feretory",
-  "version": "1.0.0",
-  "description": "Desktop monitor for Diablo IV freebies, rewards, promotions and community discoveries.",
+  "version": "1.2.0",
   "main": "main.js",
   "author": "piercedfreak",
   "license": "GPL-3.0-only",
   "homepage": "https://github.com/piercedfreak/feretory",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/piercedfreak/feretory.git"
-  },
-  "bugs": {
-    "url": "https://github.com/piercedfreak/feretory/issues"
-  },
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder"
@@ -21,7 +13,14 @@
     "appId": "com.piercedfreak.feretory",
     "productName": "Feretory",
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerSidebar": "assets/installerSidebar.bmp",
+      "installerHeader": "assets/installerHeader.bmp"
     }
   },
   "dependencies": {
