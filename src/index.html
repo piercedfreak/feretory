@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Feretory</title>
+<style>
+body{margin:0;font-family:Arial;background:#111;color:#fff}
+.wrap{padding:24px}
+h1{color:#7c5cff;margin:0}
+button{background:#7c5cff;border:none;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer}
+.card{background:#1c1c22;padding:12px;border-radius:12px;margin-top:10px}
+.small{font-size:12px;opacity:.75}
+.bar{height:10px;background:#222;border-radius:10px;overflow:hidden;margin-top:10px}
+.fill{height:100%;width:0%;background:#7c5cff;transition:.25s}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Feretory</h1>
+<div class="small">GPLv3 Open Source Edition</div>
+
+<button onclick="scan()">Scan Now</button>
+
+<div class="bar">
+<div id="bar" class="fill"></div>
+</div>
+
+<div id="stage" class="small">Ready</div>
+
+<h3>Detections</h3>
+<div id="results"></div>
+
+<h3>Logs</h3>
+<div id="logs" class="small"></div>
+
+<script src="renderer.js"></script>
+</div>
+</body>
+</html>
