@@ -1,0 +1,7 @@
+{
+  "name": "Forums",
+  "url": "https://us.forums.blizzard.com/en/d4/",
+  "type": "html",
+  "enabled": true,
+  "selectors": ["h1", "h2", "h3", "a", "p"]
+}
