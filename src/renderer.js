@@ -117,6 +117,11 @@ ipcRenderer.on("settings", (_event, settings) => {
   sounds = settings.sounds || sounds;
 });
 
+ipcRenderer.on("plugins", (_event, plugins) => {
+  console.log("Loaded plugins:", plugins);
+});
+
 window.onload = () => {
   ipcRenderer.send("request-cache");
+  ipcRenderer.send("list-plugins");
 };
