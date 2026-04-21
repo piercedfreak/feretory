@@ -44,6 +44,7 @@
     "titlePath": "title",
     "subtitlePath": "excerpt",
     "linkPath": "slug",
+    "linkTemplate": "https://us.forums.blizzard.com/en/d4/t/{slug}/{id}",
     "pricePath": "",
     "imagePath": "",
     "extraPaths": {
@@ -56,5 +57,5 @@
       "category_id": "category_id"
     }
   },
-  "notes": "Because linkPath is only the slug, use the base forum URL plus /t/<slug>/<id> if you want full topic links. See optional code patch below."
+  "notes": "Built for Blizzard's Discourse forum category JSON."
 }
