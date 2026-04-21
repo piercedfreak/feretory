@@ -180,7 +180,7 @@ async function getHTML(url) {
     const res = await axios.get(url, {
       timeout: 8000,
       headers: {
-        "User-Agent": "feretory/1.5.0"
+        "User-Agent": "feretory/1.0.0"
       }
     });
     return res.data;
