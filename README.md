@@ -20,7 +20,7 @@ Open-source desktop monitor for Diablo IV freebies, promotions, rewards, and com
 
 ## Author
 
-ʞɐǝɹɟ
+piercedfreak
 
 ## Repository
 
