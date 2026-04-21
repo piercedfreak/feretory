@@ -1,7 +1,60 @@
 {
-  "name": "Forums",
-  "url": "https://us.forums.blizzard.com/en/d4/",
-  "type": "html",
+  "id": "blizzard-d4-pc-general",
+  "name": "Blizzard D4 PC General",
+  "description": "Monitors Diablo IV PC General Discussion topics from the Blizzard Discourse JSON endpoint.",
   "enabled": true,
-  "selectors": ["h1", "h2", "h3", "a", "p"]
+  "url": "https://us.forums.blizzard.com/en/d4/c/pc-general-discussion/5.json",
+  "method": "GET",
+  "timeoutMs": 20000,
+  "mode": "json-api",
+  "matchMode": "containsAny",
+  "matchAny": [
+    "shop",
+    "free",
+    "cosmetic",
+    "mount",
+    "bundle",
+    "event",
+    "stream",
+    "expansion",
+    "season",
+    "freebies"
+  ],
+  "matchAll": [],
+  "rejectAny": [],
+  "headers": {
+    "accept": "application/json"
+  },
+  "notifications": {
+    "enabled": true,
+    "title": "feretory Blizzard forum hit",
+    "openFirstMatch": true,
+    "maxPerScan": 3
+  },
+  "dedupe": {
+    "enabled": true,
+    "keyFields": [
+      "pluginId",
+      "id"
+    ],
+    "ttlHours": 168
+  },
+  "jsonConfig": {
+    "itemsPath": "$.topic_list.topics",
+    "titlePath": "title",
+    "subtitlePath": "excerpt",
+    "linkPath": "slug",
+    "pricePath": "",
+    "imagePath": "",
+    "extraPaths": {
+      "id": "id",
+      "posts_count": "posts_count",
+      "reply_count": "reply_count",
+      "views": "views",
+      "created_at": "created_at",
+      "last_posted_at": "last_posted_at",
+      "category_id": "category_id"
+    }
+  },
+  "notes": "Because linkPath is only the slug, use the base forum URL plus /t/<slug>/<id> if you want full topic links. See optional code patch below."
 }
