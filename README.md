@@ -206,7 +206,7 @@ The application is open source—review the code if you have concerns.
 
 ## License
 
-MIT
+GPLv3
 
 ---
 
