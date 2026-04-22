@@ -5,7 +5,7 @@
 
 feretory is a lightweight desktop scanner for tracking Diablo 4 cosmetic drops, shop updates, and promotions using a simple **scored keyword system**.
 
-Version: 1.6.0  
+Version: 1.6.0a  
 Author: piercedfreak
 
 ---
