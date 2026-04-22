@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self';"
+    content="default-src 'self'; img-src 'self' data: https: file:; media-src 'self' data: file:; style-src 'self' 'unsafe-inline'; script-src 'self';"
   />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>feretory</title>
@@ -34,6 +34,11 @@
           <span>Desktop notifications</span>
         </label>
 
+        <label class="field checkbox-row">
+          <input type="checkbox" id="minimizeToTray" />
+          <span>Minimize to tray</span>
+        </label>
+
         <label class="field">
           <span>Interval (minutes)</span>
           <input type="number" min="1" step="1" id="scanIntervalMinutes" />
@@ -47,6 +52,34 @@
         <div class="status-line">
           <strong>Last Scan:</strong>
           <span id="lastScanAt">Never</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Alert Sound</h2>
+
+        <label class="field checkbox-row">
+          <input type="checkbox" id="soundEnabled" />
+          <span>Sound enabled</span>
+        </label>
+
+        <label class="field">
+          <span>Volume</span>
+          <input type="range" id="soundVolume" min="0" max="100" step="1" />
+          <div class="status-line">
+            <span id="soundVolumeValue">70%</span>
+          </div>
+        </label>
+
+        <div class="button-row">
+          <button id="chooseSoundBtn">Choose Sound File</button>
+          <button id="clearSoundBtn">Use Bundled Sound</button>
+          <button id="testSoundBtn">Test Sound</button>
+        </div>
+
+        <div class="status-line wrap">
+          <strong>Sound File:</strong>
+          <span id="soundFilePath">(bundled default or none)</span>
         </div>
       </div>
 
