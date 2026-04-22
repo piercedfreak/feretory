@@ -1,207 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self';"
+  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>feretory</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #fff;
-    }
-
-    .wrap {
-      padding: 24px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .top {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 18px;
-    }
-
-    .top img {
-      width: 52px;
-      height: 52px;
-      object-fit: contain;
-    }
-
-    h1 {
-      margin: 0;
-      color: #7c5cff;
-      text-transform: lowercase;
-    }
-
-    .small {
-      font-size: 12px;
-      opacity: 0.75;
-    }
-
-    .row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin: 16px 0;
-    }
-
-    button {
-      background: #7c5cff;
-      border: none;
-      color: #fff;
-      padding: 10px 14px;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      opacity: 0.92;
-    }
-
-    select,
-    input[type="time"],
-    input[type="range"] {
-      padding: 6px;
-      border-radius: 8px;
-      border: none;
-    }
-
-    .bar {
-      height: 10px;
-      background: #222;
-      border-radius: 10px;
-      overflow: hidden;
-      margin-top: 10px;
-    }
-
-    .fill {
-      height: 100%;
-      width: 0%;
-      background: #7c5cff;
-      transition: 0.25s;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 18px;
-      margin-top: 18px;
-    }
-
-    .card {
-      background: #1c1c22;
-      padding: 16px;
-      border-radius: 14px;
-      margin-top: 10px;
-    }
-
-    .section-title {
-      margin: 18px 0 8px;
-    }
-
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-
-    #results .card {
-      margin-top: 10px;
-    }
-
-    .subsection {
-      margin-top: 18px;
-      font-size: 14px;
-      color: #cdb9ff;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="wrap">
-    <div class="top">
-      <img src="assets/logo.png" alt="feretory logo">
-      <div>
-        <h1>feretory</h1>
-        <div class="small">Elite Reward Hunter Utility</div>
-      </div>
-    </div>
-
-    <div class="row">
-      <button onclick="scan()">Scan Now</button>
-      <div class="small">Manual scan trigger</div>
-    </div>
-
-    <div class="bar">
-      <div id="bar" class="fill"></div>
-    </div>
-    <div id="stage" class="small">Ready</div>
-
-    <div class="grid">
-      <div>
-        <h3 class="section-title">Detections</h3>
-        <div id="results"></div>
-      </div>
-
-      <div>
-        <h3 class="section-title">Settings</h3>
-        <div class="card">
-          <div class="small">Scan Interval</div>
-          <select id="interval">
-            <option value="30000">30s</option>
-            <option value="60000">1m</option>
-            <option value="300000">5m</option>
-            <option value="900000">15m</option>
-          </select>
-
-          <label><input type="checkbox" id="startup"> Run on Windows startup</label>
-          <label><input type="checkbox" id="minimized"> Start minimized to tray</label>
-          <label><input type="checkbox" id="highonly"> Notify HIGH only</label>
-
-          <div class="subsection">Elite Audio</div>
-
-          <div class="small">Volume</div>
-          <input type="range" min="0" max="100" value="100" id="volume">
-
-          <label>HIGH Alert Sound
-            <input type="file" id="high" accept=".mp3,.wav,.ogg">
-          </label>
-
-          <label>MEDIUM Alert Sound
-            <input type="file" id="medium" accept=".mp3,.wav,.ogg">
-          </label>
-
-          <label>LOW Alert Sound
-            <input type="file" id="low" accept=".mp3,.wav,.ogg">
-          </label>
-
-          <label><input type="checkbox" id="tts"> Enable Voice Alerts</label>
-
-          <label>Quiet Hours Start
-            <input type="time" id="quietStart">
-          </label>
-
-          <label>Quiet Hours End
-            <input type="time" id="quietEnd">
-          </label>
-
-          <div class="row" style="margin-top: 14px;">
-            <button onclick="save()">Save Settings</button>
-            <button onclick="test('HIGH')">Test High</button>
-            <button onclick="test('MEDIUM')">Test Medium</button>
-            <button onclick="test('LOW')">Test Low</button>
-          </div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="./assets/logo.png" alt="feretory logo" class="brand-logo" />
+        <div>
+          <h1>feretory</h1>
+          <p>v1.6.0 simple scored scanner</p>
         </div>
       </div>
-    </div>
 
-    <h3 class="section-title">Logs</h3>
-    <div class="card">
-      <div id="logs" class="small"></div>
-    </div>
+      <div class="panel">
+        <h2>Scanner</h2>
+
+        <label class="field checkbox-row">
+          <input type="checkbox" id="autoScanEnabled" />
+          <span>Auto scan</span>
+        </label>
+
+        <label class="field checkbox-row">
+          <input type="checkbox" id="notificationsEnabled" />
+          <span>Desktop notifications</span>
+        </label>
+
+        <label class="field">
+          <span>Interval (minutes)</span>
+          <input type="number" min="1" step="1" id="scanIntervalMinutes" />
+        </label>
+
+        <div class="button-row">
+          <button id="saveSettingsBtn">Save Settings</button>
+          <button id="scanNowBtn" class="primary">Scan Now</button>
+        </div>
+
+        <div class="status-line">
+          <strong>Last Scan:</strong>
+          <span id="lastScanAt">Never</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Plugins</h2>
+
+        <div class="status-line wrap">
+          <strong>Active Folder:</strong>
+          <span id="pluginsDir">(loading)</span>
+        </div>
+
+        <div class="button-row">
+          <button id="choosePluginsDirBtn">Choose Folder</button>
+          <button id="openPluginsDirBtn">Open Folder</button>
+        </div>
+
+        <div class="button-row">
+          <button id="reloadPluginsBtn">Reload Plugins</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Dedupe</h2>
+        <div class="status-line">
+          <strong>Stored History:</strong>
+          <span id="historyCount">0</span>
+        </div>
+        <div class="button-row">
+          <button id="clearDedupeBtn">Clear History</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Loaded Plugins</h2>
+        <div id="pluginList" class="plugin-list"></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="hero">
+        <h2>Results</h2>
+        <p id="summaryText">Ready.</p>
+      </section>
+
+      <section class="results-section">
+        <div id="resultsMeta" class="results-meta"></div>
+        <div id="resultsList" class="results-list"></div>
+      </section>
+    </main>
   </div>
 
-  <script src="renderer.js"></script>
+  <script src="./renderer.js"></script>
 </body>
 </html>
