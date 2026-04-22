@@ -4,6 +4,8 @@ contextBridge.exposeInMainWorld('feretoryAPI', {
   getState: () => ipcRenderer.invoke('app:get-state'),
   runScan: () => ipcRenderer.invoke('scan:run'),
   updateSettings: (settings) => ipcRenderer.invoke('settings:update', settings),
+  chooseSoundFile: () => ipcRenderer.invoke('sound:choose-file'),
+  clearSoundFile: () => ipcRenderer.invoke('sound:clear-file'),
   choosePluginsDirectory: () => ipcRenderer.invoke('plugins:choose-directory'),
   reloadPlugins: () => ipcRenderer.invoke('plugins:reload'),
   clearDedupeHistory: () => ipcRenderer.invoke('dedupe:clear'),
