@@ -3,54 +3,60 @@
 </p>
 # feretory
 
-feretory is a lightweight desktop scanner for tracking Diablo 4 cosmetic drops, shop updates, and promotions using a simple **scored keyword system**.
+Lightweight desktop scanner for Diablo 4 cosmetics, shop updates, and promotions using a **scored keyword system**.
 
-Version: 1.6.0a  
-Author: piercedfreak
+**Version:** 1.6.0
+**Author:** piercedfreak
 
 ---
 
 ## Overview
 
-feretory scans websites (like Reddit and Blizzard forums), scores content using weighted keywords, and alerts you only when results are relevant.
+feretory scans sources like Reddit and Blizzard forums, scores content using weighted keywords, and alerts only when results are relevant.
 
-This version focuses on:
-- simplicity
-- low false positives
-- easy plugin tuning
-- no overcomplicated parsing systems
+Designed to stay:
+
+* simple
+* low-noise
+* easy to tune
+* easy to extend
 
 ---
 
 ## Features
 
-### Scored Matching System
-- weighted keyword scoring
-- positive and negative terms
-- configurable minimum score
-- title weighting vs body weighting
+### 🔍 Scored Matching
 
-### Plugin-Based Sources
-- JSON feeds (Reddit, APIs)
-- HTML feeds (basic page scraping)
-- no code changes needed to add sources
+* weighted keyword system
+* positive + negative terms
+* minimum score threshold
+* title vs body weighting
 
-### Smart Filtering
-- dedupe history (no repeated alerts)
-- result ranking by score
-- threshold-based filtering
+### 🔌 Plugin-Based Sources
 
-### Notifications & Sound
-- desktop notifications
-- global sound toggle
-- volume control
-- custom sound file support
-- bundled sound fallback
+* JSON feeds (Reddit, APIs)
+* HTML fallback scanning
+* add/edit sources without code changes
 
-### Tray Integration
-- runs in system tray
-- minimize to tray support
-- quick actions (scan, show, quit)
+### 🧠 Smart Filtering
+
+* dedupe history (no repeat alerts)
+* results sorted by score
+* threshold-based filtering
+
+### 🔔 Notifications & Sound
+
+* desktop notifications
+* sound on/off
+* volume control
+* custom sound file support
+* bundled fallback sound
+
+### 🖥 Tray Integration
+
+* runs in system tray
+* minimize to tray
+* quick actions (scan / show / quit)
 
 ---
 
@@ -58,18 +64,53 @@ This version focuses on:
 
 1. Fetch source (JSON or HTML)
 2. Extract items
-3. Score each item:
-   - add points for positive terms
-   - subtract for negative terms
+3. Score content:
+
+   * add points for relevant terms
+   * subtract for unwanted terms
 4. Filter by minimum score
 5. remove duplicates
 6. notify + display results
 
 ---
 
+## Installation
+
+### Download
+
+Get the latest release from GitHub:
+
+* Download the `.exe` installer from the Releases page
+
+### First Run (Important)
+
+Because feretory is **unsigned**, Windows may show a warning.
+
+If that happens:
+
+1. Right-click the installer → **Properties**
+2. Check **Unblock** (if present)
+3. Click **Apply**
+4. Run the installer
+
+Or:
+
+* Click **More info → Run anyway** on the SmartScreen prompt
+
+---
+
+## Usage
+
+* Click **Scan Now** to run manually
+* Enable **Auto Scan** for background monitoring
+* Adjust interval as needed
+* Results are ranked by score
+
+---
+
 ## Plugin Format
 
-Plugins are simple JSON files located in the `plugins/` folder.
+Plugins live in the `plugins/` folder.
 
 ### Example (Reddit)
 
@@ -103,7 +144,72 @@ Plugins are simple JSON files located in the `plugins/` folder.
     "titleMultiplier": 2,
     "bodyMultiplier": 1,
     "minimumScore": 8
-  },
-  "dedupeHours": 168,
-  "notifications": true
+  }
 }
+```
+
+---
+
+## Sound Settings
+
+* Enable/disable alerts
+* Adjust volume (0–100)
+* Choose custom audio file (wav/mp3/etc)
+
+If no custom file is set, feretory will use:
+
+```
+assets/alert.wav
+```
+
+---
+
+## Dedupe System
+
+* prevents repeat alerts
+* tracks items by ID or content hash
+* expires automatically
+* capped history size
+
+---
+
+## Troubleshooting
+
+### Installer does nothing
+
+* Right-click → **Run as administrator**
+* or unblock in Properties
+
+### No results
+
+* check plugin URL (must return JSON or readable HTML)
+* lower `minimumScore`
+* adjust keywords
+
+### Too many false positives
+
+* increase `minimumScore`
+* add negative terms
+* reduce generic keywords
+
+---
+
+## Disclaimer
+
+feretory is provided **"as is"**, without warranty of any kind.
+
+Use at your own risk. The author is not responsible for any issues, data loss, or damages resulting from its use.
+
+The application is open source—review the code if you have concerns.
+
+---
+
+## License
+
+MIT
+
+---
+
+## Credits
+
+Built by piercedfreak
