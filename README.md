@@ -6,7 +6,7 @@
 Lightweight desktop scanner for Diablo 4 cosmetics, shop updates, and promotions using a **scored keyword system**.
 
 **Version:** 1.6.1
-**Author:** piercedfreak
+**Author:** piercedfreak and ChatGPT
 
 ---
 
