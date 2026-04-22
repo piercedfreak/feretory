@@ -55,7 +55,6 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "installDirectory": "C:\\feretory",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "feretory"
