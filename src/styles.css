@@ -120,7 +120,8 @@ body {
   color: var(--text);
 }
 
-input[type="number"] {
+input[type="number"],
+input[type="range"] {
   width: 100%;
   background: var(--panel-2);
   color: var(--text);
@@ -177,6 +178,7 @@ button:disabled {
 .status-line.wrap {
   display: block;
   line-height: 1.45;
+  word-break: break-word;
 }
 
 .plugin-list {
