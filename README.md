@@ -212,4 +212,4 @@ GPLv3
 
 ## Credits
 
-Built by piercedfreak
+Built by piercedfreak and ChatGPT
