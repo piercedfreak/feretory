@@ -1,56 +1,63 @@
 {
   "name": "feretory",
-  "version": "1.2.0",
-  "description": "Desktop monitor for Diablo IV freebies and promotions.",
+  "productName": "feretory",
+  "version": "1.6.0",
+  "description": "feretory - simple scored scanner",
   "main": "main.js",
   "author": "piercedfreak",
-  "license": "GPL-3.0-only",
-  "homepage": "https://github.com/piercedfreak/feretory",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/piercedfreak/feretory.git"
-  },
-  "bugs": {
-    "url": "https://github.com/piercedfreak/feretory/issues"
-  },
+  "license": "MIT",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder"
+    "dist": "electron-builder --win nsis",
+    "pack": "electron-builder --dir"
+  },
+  "dependencies": {
+    "cheerio": "^1.1.0",
+    "electron-store": "^10.0.1"
+  },
+  "devDependencies": {
+    "electron": "^37.2.0",
+    "electron-builder": "^25.1.8"
   },
   "build": {
-    "appId": "com.piercedfreak.feretory",
+    "appId": "com.freak.feretory",
     "productName": "feretory",
+    "artifactName": "feretory-${version}-setup.${ext}",
     "directories": {
-      "buildResources": "build"
+      "buildResources": "assets"
     },
     "files": [
       "main.js",
-      "renderer.js",
+      "preload.js",
       "index.html",
-      "assets/**/*",
-      "plugins-default/**/*",
-      "package.json"
+      "renderer.js",
+      "styles.css",
+      "package.json",
+      "plugins/**/*",
+      "assets/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "plugins",
+        "to": "plugins"
+      },
+      {
+        "from": "assets",
+        "to": "assets"
+      }
     ],
     "win": {
-      "target": "nsis",
-      "icon": "build/icon.ico"
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.ico"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "feretory",
-      "perMachine": false
+      "shortcutName": "feretory"
     }
-  },
-  "dependencies": {
-    "axios": "^1.6.0",
-    "cheerio": "^1.0.0",
-    "electron-store": "^8.2.0"
-  },
-  "devDependencies": {
-    "electron": "^30.0.0",
-    "electron-builder": "^24.0.0"
   }
 }
