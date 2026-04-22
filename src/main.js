@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, Notification } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, Notification, Tray, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -10,6 +10,10 @@ const store = new Store({
     scanIntervalMinutes: 5,
     autoScanEnabled: false,
     notificationsEnabled: true,
+    soundEnabled: true,
+    soundVolume: 70,
+    soundFilePath: '',
+    minimizeToTray: true,
     lastScanAt: null,
     pluginsDirectoryOverride: '',
     window: {
@@ -24,8 +28,10 @@ const store = new Store({
 });
 
 let mainWindow = null;
+let tray = null;
 let scanTimer = null;
 let isScanning = false;
+let isQuitting = false;
 
 function getAssetPath(...parts) {
   const base = app.isPackaged ? process.resourcesPath : app.getAppPath();
@@ -39,6 +45,24 @@ function getIconPath() {
   if (fs.existsSync(icoPath)) return icoPath;
   if (fs.existsSync(pngPath)) return pngPath;
   return undefined;
+}
+
+function getDefaultSoundPath() {
+  const wavPath = getAssetPath('assets', 'alert.wav');
+  const mp3Path = getAssetPath('assets', 'alert.mp3');
+
+  if (fs.existsSync(wavPath)) return wavPath;
+  if (fs.existsSync(mp3Path)) return mp3Path;
+
+  return '';
+}
+
+function getEffectiveSoundPath() {
+  const customPath = String(store.get('soundFilePath') || '').trim();
+  if (customPath && fs.existsSync(customPath)) {
+    return customPath;
+  }
+  return getDefaultSoundPath();
 }
 
 function getDefaultPluginsDir() {
@@ -421,6 +445,73 @@ function showNotifications(plugin, items) {
   }
 }
 
+function buildTrayMenu() {
+  return Menu.buildFromTemplate([
+    {
+      label: 'Show feretory',
+      click: () => {
+        showMainWindow();
+      }
+    },
+    {
+      label: 'Run Scan',
+      click: async () => {
+        await runFullScan();
+      }
+    },
+    {
+      type: 'separator'
+    },
+    {
+      label: 'Quit',
+      click: () => {
+        isQuitting = true;
+        app.quit();
+      }
+    }
+  ]);
+}
+
+function createTray() {
+  const iconPath = getIconPath();
+  if (!iconPath || tray) return;
+
+  tray = new Tray(iconPath);
+  tray.setToolTip('feretory');
+  tray.setContextMenu(buildTrayMenu());
+
+  tray.on('click', () => {
+    if (!mainWindow) {
+      createWindow();
+      return;
+    }
+
+    if (mainWindow.isVisible()) {
+      mainWindow.hide();
+    } else {
+      showMainWindow();
+    }
+  });
+
+  tray.on('double-click', () => {
+    showMainWindow();
+  });
+}
+
+function showMainWindow() {
+  if (!mainWindow) {
+    createWindow();
+    return;
+  }
+
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+
+  mainWindow.show();
+  mainWindow.focus();
+}
+
 async function runPlugin(plugin) {
   if (!plugin.enabled) {
     return {
@@ -550,7 +641,6 @@ async function runFullScan() {
     ).sort((a, b) => b.score - a.score);
 
     const finishedAt = new Date().toISOString();
-
     const payload = {
       ok: true,
       startedAt,
@@ -560,7 +650,12 @@ async function runFullScan() {
       totalDuplicateMatches: duplicateFound.length,
       results,
       freshFound,
-      duplicateFound
+      duplicateFound,
+      sound: {
+        shouldPlay: freshFound.length > 0 && Boolean(store.get('soundEnabled')),
+        volume: Math.max(0, Math.min(100, Number(store.get('soundVolume') || 70))),
+        filePath: getEffectiveSoundPath()
+      }
     };
 
     store.set('lastScanAt', finishedAt);
@@ -624,23 +719,47 @@ function createWindow() {
     store.set('window', { width, height });
   });
 
+  mainWindow.on('minimize', (event) => {
+    if (store.get('minimizeToTray')) {
+      event.preventDefault();
+      mainWindow.hide();
+    }
+  });
+
+  mainWindow.on('close', (event) => {
+    if (!isQuitting && store.get('minimizeToTray')) {
+      event.preventDefault();
+      mainWindow.hide();
+    }
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 }
 
 app.whenReady().then(() => {
+  app.setName('feretory');
   createWindow();
+  createTray();
   purgeExpiredHistory();
   startScanTimer();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    else showMainWindow();
   });
 });
 
+app.on('before-quit', () => {
+  isQuitting = true;
+});
+
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+  if (process.platform !== 'darwin') {
+    // stay alive for tray unless quitting
+    if (isQuitting) app.quit();
+  }
 });
 
 ipcMain.handle('app:get-state', async () => {
@@ -656,6 +775,11 @@ ipcMain.handle('app:get-state', async () => {
       scanIntervalMinutes: Number(store.get('scanIntervalMinutes') || 5),
       autoScanEnabled: Boolean(store.get('autoScanEnabled')),
       notificationsEnabled: Boolean(store.get('notificationsEnabled')),
+      soundEnabled: Boolean(store.get('soundEnabled')),
+      soundVolume: Math.max(0, Math.min(100, Number(store.get('soundVolume') || 70))),
+      soundFilePath: String(store.get('soundFilePath') || ''),
+      effectiveSoundPath: getEffectiveSoundPath(),
+      minimizeToTray: Boolean(store.get('minimizeToTray')),
       lastScanAt: store.get('lastScanAt') || null,
       pluginsDirectoryOverride: store.get('pluginsDirectoryOverride') || ''
     },
@@ -695,6 +819,19 @@ ipcMain.handle('settings:update', async (_event, partialSettings) => {
     store.set('notificationsEnabled', Boolean(partialSettings.notificationsEnabled));
   }
 
+  if (typeof partialSettings.soundEnabled !== 'undefined') {
+    store.set('soundEnabled', Boolean(partialSettings.soundEnabled));
+  }
+
+  if (typeof partialSettings.soundVolume !== 'undefined') {
+    const vol = Math.max(0, Math.min(100, Number(partialSettings.soundVolume) || 0));
+    store.set('soundVolume', vol);
+  }
+
+  if (typeof partialSettings.minimizeToTray !== 'undefined') {
+    store.set('minimizeToTray', Boolean(partialSettings.minimizeToTray));
+  }
+
   if (typeof partialSettings.pluginsDirectoryOverride !== 'undefined') {
     store.set('pluginsDirectoryOverride', String(partialSettings.pluginsDirectoryOverride || ''));
   }
@@ -707,10 +844,46 @@ ipcMain.handle('settings:update', async (_event, partialSettings) => {
       scanIntervalMinutes: Number(store.get('scanIntervalMinutes') || 5),
       autoScanEnabled: Boolean(store.get('autoScanEnabled')),
       notificationsEnabled: Boolean(store.get('notificationsEnabled')),
+      soundEnabled: Boolean(store.get('soundEnabled')),
+      soundVolume: Math.max(0, Math.min(100, Number(store.get('soundVolume') || 70))),
+      soundFilePath: String(store.get('soundFilePath') || ''),
+      effectiveSoundPath: getEffectiveSoundPath(),
+      minimizeToTray: Boolean(store.get('minimizeToTray')),
       lastScanAt: store.get('lastScanAt') || null,
       pluginsDirectoryOverride: store.get('pluginsDirectoryOverride') || ''
     },
     pluginsDir: getPluginsDir()
+  };
+});
+
+ipcMain.handle('sound:choose-file', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: [
+      { name: 'Audio Files', extensions: ['wav', 'mp3', 'ogg', 'm4a'] },
+      { name: 'All Files', extensions: ['*'] }
+    ]
+  });
+
+  if (result.canceled || !result.filePaths.length) {
+    return { ok: false, canceled: true };
+  }
+
+  const chosen = result.filePaths[0];
+  store.set('soundFilePath', chosen);
+
+  return {
+    ok: true,
+    path: chosen,
+    effectiveSoundPath: getEffectiveSoundPath()
+  };
+});
+
+ipcMain.handle('sound:clear-file', async () => {
+  store.set('soundFilePath', '');
+  return {
+    ok: true,
+    effectiveSoundPath: getEffectiveSoundPath()
   };
 });
 
