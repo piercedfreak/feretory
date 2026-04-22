@@ -1,61 +1,65 @@
 {
   "id": "blizzard-d4-pc-general",
   "name": "Blizzard D4 PC General",
-  "description": "Monitors Diablo IV PC General Discussion topics from the Blizzard Discourse JSON endpoint.",
+  "description": "Scores Diablo IV PC General Discussion topics for cosmetics, shop, promos, and drops.",
   "enabled": true,
   "url": "https://us.forums.blizzard.com/en/d4/c/pc-general-discussion/5.json",
-  "method": "GET",
-  "timeoutMs": 20000,
-  "mode": "json-api",
-  "matchMode": "containsAny",
-  "matchAny": [
-    "shop",
-    "free",
-    "cosmetic",
-    "mount",
-    "bundle",
-    "event",
-    "stream",
-    "expansion",
-    "season",
-    "freebies"
-  ],
-  "matchAll": [],
-  "rejectAny": [],
   "headers": {
     "accept": "application/json"
   },
-  "notifications": {
-    "enabled": true,
-    "title": "feretory Blizzard forum hit",
-    "openFirstMatch": true,
-    "maxPerScan": 3
+  "type": "json-feed",
+  "linkTemplate": "https://us.forums.blizzard.com/en/d4/t/{slug}/{id}",
+  "itemPath": "topic_list.topics",
+  "fields": {
+    "title": "title",
+    "body": "excerpt",
+    "link": "slug",
+    "id": "id"
   },
-  "dedupe": {
-    "enabled": true,
-    "keyFields": [
-      "pluginId",
-      "id"
-    ],
-    "ttlHours": 168
+  "score": {
+    "terms": {
+      "item shop": 6,
+      "cash shop": 6,
+      "shop update": 5,
+      "store update": 5,
+      "new cosmetic": 5,
+      "free cosmetic": 6,
+      "free mount": 6,
+      "free skin": 6,
+      "free bundle": 5,
+      "twitch drop": 7,
+      "prime gaming": 7,
+      "promotion": 3,
+      "promo": 3,
+      "cosmetic": 3,
+      "mount armor": 4,
+      "skin": 2
+    },
+    "penalties": {
+      "build": -4,
+      "paragon": -4,
+      "skill tree": -4,
+      "season journey": -5,
+      "nightmare dungeon": -4,
+      "pit": -3,
+      "boss": -3,
+      "temper": -4,
+      "tempering": -4,
+      "masterwork": -4,
+      "disconnect": -5,
+      "latency": -5,
+      "rubberbanding": -5,
+      "crash": -5,
+      "controller": -4,
+      "bug report": -5,
+      "technical support": -5,
+      "help me": -3,
+      "how do i": -3
+    },
+    "titleMultiplier": 2,
+    "bodyMultiplier": 1,
+    "minimumScore": 8
   },
-  "jsonConfig": {
-    "itemsPath": "$.topic_list.topics",
-    "titlePath": "title",
-    "subtitlePath": "excerpt",
-    "linkPath": "slug",
-    "linkTemplate": "https://us.forums.blizzard.com/en/d4/t/{slug}/{id}",
-    "pricePath": "",
-    "imagePath": "",
-    "extraPaths": {
-      "id": "id",
-      "posts_count": "posts_count",
-      "reply_count": "reply_count",
-      "views": "views",
-      "created_at": "created_at",
-      "last_posted_at": "last_posted_at",
-      "category_id": "category_id"
-    }
-  },
-  "notes": "Built for Blizzard's Discourse forum category JSON."
+  "dedupeHours": 168,
+  "notifications": true
 }
