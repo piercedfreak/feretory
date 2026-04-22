@@ -1,5 +1,7 @@
 const $ = (selector) => document.querySelector(selector);
 
+let currentEffectiveSoundPath = '';
+
 function formatDateTime(value) {
   if (!value) return 'Never';
   const date = new Date(value);
@@ -128,15 +130,35 @@ function renderResults(payload) {
   }
 }
 
+async function playSound(filePath, volumePercent) {
+  if (!filePath) return;
+
+  try {
+    const audio = new Audio(`file:///${filePath.replace(/\\/g, '/')}`);
+    audio.volume = Math.max(0, Math.min(1, Number(volumePercent || 0) / 100));
+    await audio.play();
+  } catch (error) {
+    console.warn('Sound playback failed:', error);
+  }
+}
+
 async function refreshAppState() {
   const appState = await window.feretoryAPI.getState();
 
   $('#autoScanEnabled').checked = !!appState.settings.autoScanEnabled;
   $('#notificationsEnabled').checked = !!appState.settings.notificationsEnabled;
+  $('#minimizeToTray').checked = !!appState.settings.minimizeToTray;
+  $('#soundEnabled').checked = !!appState.settings.soundEnabled;
+  $('#soundVolume').value = Number(appState.settings.soundVolume || 70);
+  $('#soundVolumeValue').textContent = `${Number(appState.settings.soundVolume || 70)}%`;
+
   $('#scanIntervalMinutes').value = Number(appState.settings.scanIntervalMinutes || 5);
   $('#lastScanAt').textContent = formatDateTime(appState.settings.lastScanAt);
   $('#pluginsDir').textContent = appState.pluginsDir || '(unknown)';
   $('#historyCount').textContent = String(appState.dedupeStats?.historyCount || 0);
+
+  currentEffectiveSoundPath = appState.settings.effectiveSoundPath || '';
+  $('#soundFilePath').textContent = appState.settings.soundFilePath || (currentEffectiveSoundPath || '(bundled default or none)');
 
   renderPlugins(appState.plugins || []);
 }
@@ -144,16 +166,24 @@ async function refreshAppState() {
 async function saveSettings() {
   const autoScanEnabled = $('#autoScanEnabled').checked;
   const notificationsEnabled = $('#notificationsEnabled').checked;
+  const minimizeToTray = $('#minimizeToTray').checked;
+  const soundEnabled = $('#soundEnabled').checked;
+  const soundVolume = Number($('#soundVolume').value || 70);
   const scanIntervalMinutes = Number($('#scanIntervalMinutes').value || 5);
 
   const result = await window.feretoryAPI.updateSettings({
     autoScanEnabled,
     notificationsEnabled,
+    minimizeToTray,
+    soundEnabled,
+    soundVolume,
     scanIntervalMinutes
   });
 
   $('#lastScanAt').textContent = formatDateTime(result.settings.lastScanAt);
   $('#pluginsDir').textContent = result.pluginsDir || '(unknown)';
+  currentEffectiveSoundPath = result.settings.effectiveSoundPath || currentEffectiveSoundPath;
+  $('#soundFilePath').textContent = result.settings.soundFilePath || (currentEffectiveSoundPath || '(bundled default or none)');
   $('#summaryText').textContent = 'Settings saved.';
 }
 
@@ -165,9 +195,15 @@ async function runScan() {
     const payload = await window.feretoryAPI.runScan();
     renderResults(payload);
 
+    if (payload.sound?.shouldPlay && payload.sound?.filePath) {
+      await playSound(payload.sound.filePath, payload.sound.volume);
+    }
+
     const latest = await window.feretoryAPI.getState();
     $('#lastScanAt').textContent = formatDateTime(latest.settings.lastScanAt);
     $('#historyCount').textContent = String(latest.dedupeStats?.historyCount || 0);
+    currentEffectiveSoundPath = latest.settings.effectiveSoundPath || currentEffectiveSoundPath;
+    $('#soundFilePath').textContent = latest.settings.soundFilePath || (currentEffectiveSoundPath || '(bundled default or none)');
   } catch (error) {
     $('#summaryText').textContent = `Scan failed: ${error.message}`;
   } finally {
@@ -182,6 +218,42 @@ async function choosePluginsFolder() {
     await reloadPlugins();
     $('#summaryText').textContent = 'Plugin folder updated.';
   }
+}
+
+async function chooseSoundFile() {
+  const result = await window.feretoryAPI.chooseSoundFile();
+  if (result.ok && result.path) {
+    currentEffectiveSoundPath = result.effectiveSoundPath || result.path;
+    $('#soundFilePath').textContent = result.path;
+    $('#summaryText').textContent = 'Sound file updated.';
+  }
+}
+
+async function clearSoundFile() {
+  const result = await window.feretoryAPI.clearSoundFile();
+  if (result.ok) {
+    currentEffectiveSoundPath = result.effectiveSoundPath || '';
+    $('#soundFilePath').textContent = currentEffectiveSoundPath || '(bundled default or none)';
+    $('#summaryText').textContent = 'Using bundled/default sound.';
+  }
+}
+
+async function testSound() {
+  const enabled = $('#soundEnabled').checked;
+  const volume = Number($('#soundVolume').value || 70);
+
+  if (!enabled) {
+    $('#summaryText').textContent = 'Sound is currently disabled.';
+    return;
+  }
+
+  if (!currentEffectiveSoundPath) {
+    $('#summaryText').textContent = 'No sound file found. Add assets/alert.wav or choose a custom file.';
+    return;
+  }
+
+  await playSound(currentEffectiveSoundPath, volume);
+  $('#summaryText').textContent = 'Played test sound.';
 }
 
 async function reloadPlugins() {
@@ -205,6 +277,13 @@ function bindEvents() {
   $('#choosePluginsDirBtn').addEventListener('click', choosePluginsFolder);
   $('#reloadPluginsBtn').addEventListener('click', reloadPlugins);
   $('#clearDedupeBtn').addEventListener('click', clearDedupeHistory);
+  $('#chooseSoundBtn').addEventListener('click', chooseSoundFile);
+  $('#clearSoundBtn').addEventListener('click', clearSoundFile);
+  $('#testSoundBtn').addEventListener('click', testSound);
+
+  $('#soundVolume').addEventListener('input', () => {
+    $('#soundVolumeValue').textContent = `${Number($('#soundVolume').value || 70)}%`;
+  });
 
   $('#openPluginsDirBtn').addEventListener('click', async () => {
     const dir = $('#pluginsDir').textContent;
@@ -213,9 +292,13 @@ function bindEvents() {
     }
   });
 
-  window.feretoryAPI.onScanComplete((payload) => {
+  window.feretoryAPI.onScanComplete(async (payload) => {
     renderResults(payload);
     $('#lastScanAt').textContent = formatDateTime(payload.finishedAt);
+
+    if (payload.sound?.shouldPlay && payload.sound?.filePath) {
+      await playSound(payload.sound.filePath, payload.sound.volume);
+    }
   });
 }
 
