@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; img-src 'self' data: https: file:; media-src 'self' data: file:; style-src 'self' 'unsafe-inline'; script-src 'self';"
+  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>feretory</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="./assets/logo.png" alt="feretory logo" class="brand-logo" />
+        <div>
+          <h1>feretory</h1>
+          <p>v1.6.1 simple scored scanner</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Scanner</h2>
+
+        <label class="field checkbox-row">
+          <input type="checkbox" id="autoScanEnabled" />
+          <span>Auto scan</span>
+        </label>
+
+        <label class="field checkbox-row">
+          <input type="checkbox" id="notificationsEnabled" />
+          <span>Desktop notifications</span>
+        </label>
+
+        <label class="field checkbox-row">
+          <input type="checkbox" id="minimizeToTray" />
+          <span>Minimize to tray</span>
+        </label>
+
+        <label class="field">
+          <span>Interval (minutes)</span>
+          <input type="number" min="1" step="1" id="scanIntervalMinutes" />
+        </label>
+
+        <div class="button-row">
+          <button id="saveSettingsBtn">Save Settings</button>
+          <button id="scanNowBtn" class="primary">Scan Now</button>
+        </div>
+
+        <div class="status-line">
+          <strong>Last Scan:</strong>
+          <span id="lastScanAt">Never</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Alert Sound</h2>
+
+        <label class="field checkbox-row">
+          <input type="checkbox" id="soundEnabled" />
+          <span>Sound enabled</span>
+        </label>
+
+        <label class="field">
+          <span>Volume</span>
+          <input type="range" id="soundVolume" min="0" max="100" step="1" />
+          <div class="status-line">
+            <span id="soundVolumeValue">70%</span>
+          </div>
+        </label>
+
+        <div class="button-row">
+          <button id="chooseSoundBtn">Choose Sound File</button>
+          <button id="clearSoundBtn">Use Bundled Sound</button>
+          <button id="testSoundBtn">Test Sound</button>
+        </div>
+
+        <div class="status-line wrap">
+          <strong>Sound File:</strong>
+          <span id="soundFilePath">(bundled default or none)</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Plugins</h2>
+
+        <div class="status-line wrap">
+          <strong>Active Folder:</strong>
+          <span id="pluginsDir">(loading)</span>
+        </div>
+
+        <div class="button-row">
+          <button id="choosePluginsDirBtn">Choose Folder</button>
+          <button id="openPluginsDirBtn">Open Folder</button>
+        </div>
+
+        <div class="button-row">
+          <button id="reloadPluginsBtn">Reload Plugins</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Dedupe</h2>
+        <div class="status-line">
+          <strong>Stored History:</strong>
+          <span id="historyCount">0</span>
+        </div>
+        <div class="button-row">
+          <button id="clearDedupeBtn">Clear History</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Loaded Plugins</h2>
+        <div id="pluginList" class="plugin-list"></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="hero">
+        <h2>Results</h2>
+        <p id="summaryText">Ready.</p>
+      </section>
+
+      <section class="results-section">
+        <div id="resultsMeta" class="results-meta"></div>
+        <div id="resultsList" class="results-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./renderer.js"></script>
+</body>
+</html>
