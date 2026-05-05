@@ -730,7 +730,7 @@ async function runPlugin(plugin) {
     }
 
     const scoredItems = extractedItems
-      .map(item => scoreItem(plugin, item))
+      .map(item => applyLearningScore(plugin, scoreItem(plugin, item)))  
       .filter(item => item.passed)
       .sort((a, b) => b.score - a.score);
 
