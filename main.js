@@ -159,6 +159,175 @@ function applyTemplate(template, sourceObj) {
 function normalizeText(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
 }
+function getLearning() {
+  const learning = store.get('learning') || {};
+
+  return {
+    enabled: learning.enabled !== false,
+    feedback: Array.isArray(learning.feedback) ? learning.feedback : [],
+    termWeights: learning.termWeights && typeof learning.termWeights === 'object'
+      ? learning.termWeights
+      : {},
+    maxFeedbackEntries: Number(learning.maxFeedbackEntries || 2000)
+  };
+}
+
+function saveLearning(learning) {
+  const maxFeedbackEntries = Number(learning.maxFeedbackEntries || 2000);
+
+  store.set('learning', {
+    enabled: learning.enabled !== false,
+    feedback: Array.isArray(learning.feedback)
+      ? learning.feedback.slice(-maxFeedbackEntries)
+      : [],
+    termWeights: learning.termWeights || {},
+    maxFeedbackEntries
+  });
+}
+
+function clampLearningWeight(value) {
+  return Math.max(-10, Math.min(10, Number(value) || 0));
+}
+
+function extractLearningTerms(item) {
+  const stopWords = new Set([
+    'this', 'that', 'with', 'from', 'have', 'will', 'your', 'about',
+    'there', 'their', 'they', 'them', 'what', 'when', 'where', 'were',
+    'been', 'into', 'just', 'like', 'over', 'more', 'only', 'some',
+    'than', 'then', 'also', 'because', 'would', 'could', 'should'
+  ]);
+
+  const terms = new Set();
+
+  for (const hit of item.matchedPositive || []) {
+    if (hit && hit.term) {
+      terms.add(String(hit.term).toLowerCase().trim());
+    }
+  }
+
+  const combined = `${item.title || ''} ${item.body || ''}`.toLowerCase();
+  const words = combined.match(/[a-z0-9][a-z0-9'_-]{2,}/g) || [];
+
+  for (const word of words) {
+    if (word.length >= 4 && !stopWords.has(word)) {
+      terms.add(word);
+    }
+  }
+
+  return [...terms].filter(Boolean).slice(0, 30);
+}
+
+function getLearningStats() {
+  const learning = getLearning();
+  const weights = Object.entries(learning.termWeights || {});
+
+  const boosted = weights
+    .filter(([, weight]) => Number(weight) > 0)
+    .sort((a, b) => Number(b[1]) - Number(a[1]))
+    .slice(0, 10)
+    .map(([term, weight]) => ({ term, weight }));
+
+  const penalized = weights
+    .filter(([, weight]) => Number(weight) < 0)
+    .sort((a, b) => Number(a[1]) - Number(b[1]))
+    .slice(0, 10)
+    .map(([term, weight]) => ({ term, weight }));
+
+  return {
+    enabled: learning.enabled,
+    feedbackCount: learning.feedback.length,
+    learnedTermCount: weights.length,
+    boosted,
+    penalized
+  };
+}
+
+function recordLearningFeedback(item, vote) {
+  const normalizedVote = String(vote || '').toLowerCase();
+
+  if (!['up', 'down'].includes(normalizedVote)) {
+    return { ok: false, error: 'Vote must be up or down.' };
+  }
+
+  const learning = getLearning();
+  const delta = normalizedVote === 'up' ? 1 : -2;
+  const terms = extractLearningTerms(item || {});
+  const termWeights = { ...(learning.termWeights || {}) };
+
+  for (const term of terms) {
+    termWeights[term] = clampLearningWeight((Number(termWeights[term]) || 0) + delta);
+  }
+
+  const feedback = [
+    ...(learning.feedback || []),
+    {
+      vote: normalizedVote,
+      pluginId: item.pluginId || '',
+      pluginName: item.pluginName || '',
+      title: item.title || '',
+      link: item.link || '',
+      dedupeKey: item.dedupeKey || '',
+      terms,
+      createdAt: new Date().toISOString()
+    }
+  ];
+
+  saveLearning({
+    ...learning,
+    feedback,
+    termWeights
+  });
+
+  return {
+    ok: true,
+    vote: normalizedVote,
+    learnedTerms: terms.length,
+    learningStats: getLearningStats()
+  };
+}
+
+function applyLearningScore(plugin, item) {
+  const learning = getLearning();
+  const baseScore = Number(item.score || 0);
+
+  if (!learning.enabled) {
+    return {
+      ...item,
+      baseScore,
+      learnedScore: 0,
+      learningHits: [],
+      passed: item.passed
+    };
+  }
+
+  const combined = `${item.title || ''} ${item.body || ''}`.toLowerCase();
+  let learnedScore = 0;
+  const learningHits = [];
+
+  for (const [term, rawWeight] of Object.entries(learning.termWeights || {})) {
+    const normalizedTerm = String(term).toLowerCase().trim();
+    if (!normalizedTerm) continue;
+
+    if (combined.includes(normalizedTerm)) {
+      const score = clampLearningWeight(rawWeight);
+      if (score !== 0) {
+        learnedScore += score;
+        learningHits.push({ term: normalizedTerm, score });
+      }
+    }
+  }
+
+  const finalScore = baseScore + learnedScore;
+
+  return {
+    ...item,
+    baseScore,
+    learnedScore,
+    learningHits,
+    score: finalScore,
+    passed: item.passed || finalScore >= plugin.score.minimumScore
+  };
+}
 
 function loadPlugins() {
   const pluginsDir = getPluginsDir();
