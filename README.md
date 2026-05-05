@@ -1,3 +1,4 @@
+
 <p align="center">
   <img src="/assets/logo.png">
 </p>
@@ -13,44 +14,52 @@ feretory is a lightweight desktop scanner that monitors sources (like Reddit or 
 ## 🔥 What’s new in v2
 
 ### 🧠 Learning Feedback
-- Mark results as **Useful** or **Not useful**
-- Adjusts future scoring automatically
-- Prevents duplicate voting on the same item
-- Displays top learned terms in the UI
+
+* Mark results as **Useful** or **Not useful**
+* Adjusts future scoring automatically
+* Prevents duplicate voting on the same item
+* Displays top learned terms in the UI
 
 ### 📌 Persistent Results
-- Results stay on screen until you act on them
-- New scans add to the list instead of clearing it
-- You control what gets dismissed
+
+* Results stay on screen until you act on them
+* New scans add to the list instead of clearing it
+* You control what gets dismissed
 
 ### 🧩 Collapsible Panels
-- Sidebar panels can be collapsed
-- State is saved between sessions
+
+* Sidebar panels can be collapsed
+* State is saved between sessions
 
 ---
 
 ## ⚙️ Core Features
 
-- **Plugin-based scanning**
-  - JSON feeds (Reddit, APIs)
-  - HTML sources (basic scraping)
+* **Plugin-based scanning**
 
-- **Keyword scoring system**
-  - weighted positive terms
-  - weighted penalties
-  - separate title/body multipliers
+  * JSON feeds (Reddit, APIs)
+  * HTML sources (basic scraping)
 
-- **Deduplication system**
-  - prevents repeated alerts
-  - configurable history window
+* **Keyword scoring system**
 
-- **Desktop notifications**
-  - clickable results
-  - optional sound alerts
+  * weighted positive terms
+  * weighted penalties
+  * separate title/body multipliers
 
-- **Tray support**
-  - run in background
-  - quick scan access
+* **Deduplication system**
+
+  * prevents repeated alerts
+  * configurable history window
+
+* **Desktop notifications**
+
+  * clickable results
+  * optional sound alerts
+
+* **Tray support**
+
+  * run in background
+  * quick scan access
 
 ---
 
@@ -68,12 +77,13 @@ feretory is a lightweight desktop scanner that monitors sources (like Reddit or 
 
 feretory uses a simple local learning model:
 
-- Extracts meaningful terms from results
-- Adjusts weights based on feedback:
-  - 👍 Useful → increase weight
-  - 👎 Not useful → decrease weight
-- Clamped weights prevent runaway behavior
-- No external APIs or cloud required
+* Extracts meaningful terms from results
+* Adjusts weights based on feedback:
+
+  * 👍 Useful → increase weight
+  * 👎 Not useful → decrease weight
+* Clamped weights prevent runaway behavior
+* No external APIs or cloud required
 
 ---
 
@@ -107,3 +117,69 @@ Example:
     "minimumScore": 1
   }
 }
+```
+
+---
+
+## 🚀 Running
+
+```bash
+npm install
+npm start
+```
+
+---
+
+## 🧪 Tips
+
+* Use a low `minimumScore` when testing plugins
+* Add temporary keywords to force matches
+* Reset learning if behavior gets skewed
+
+---
+
+## ⚠️ Notes
+
+* Learning is **local only**
+* No data leaves your machine
+* Designed for personal filtering workflows
+
+---
+
+## 📌 Roadmap Ideas
+
+* highlight strong learned matches
+* auto-expire results
+* dismiss all button
+* learning decay over time
+
+---
+
+## 🧠 Philosophy
+
+feretory is built to be:
+
+* simple
+* fast
+* local-first
+* user-controlled
+
+No accounts, no cloud, no noise — just signal.
+
+---
+
+## 🏷️ Version
+
+v2.0.0
+
+---
+
+## 👤 Author
+
+piercedfreak
+
+---
+
+## ⭐
+
+If you find this useful, feel free to star the repo.
