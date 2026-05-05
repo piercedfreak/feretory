@@ -23,6 +23,12 @@ const store = new Store({
     dedupe: {
       history: [],
       maxEntries: 4000
+    },
+    learning: {
+      enabled: true,
+      feedback: [],
+      termWeights: {},
+      maxFeedbackEntries: 2000
     }
   }
 });
