@@ -1112,6 +1112,25 @@ ipcMain.handle('dedupe:clear', async () => {
   };
 });
 
+ipcMain.handle('learning:feedback', async (_event, item, vote) => {
+  return recordLearningFeedback(item, vote);
+});
+
+ipcMain.handle('learning:clear', async () => {
+  const learning = getLearning();
+
+  saveLearning({
+    ...learning,
+    feedback: [],
+    termWeights: {}
+  });
+
+  return {
+    ok: true,
+    learningStats: getLearningStats()
+  };
+});
+
 ipcMain.handle('shell:openExternal', async (_event, url) => {
   if (!url || typeof url !== 'string') return { ok: false };
   await shell.openExternal(url);
