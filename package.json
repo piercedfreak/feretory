@@ -1,7 +1,7 @@
 {
   "name": "feretory",
   "productName": "feretory",
-  "version": "1.6.1",
+  "version": "2.0.0",
   "description": "feretory - simple scored scanner",
   "main": "main.js",
   "author": "piercedfreak",

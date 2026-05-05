@@ -1,3 +1,4 @@
+let persistentResults = [];
 const $ = (selector) => document.querySelector(selector);
 
 let currentEffectiveSoundPath = '';
@@ -22,11 +23,50 @@ function escapeHtmlAttr(value) {
   return escapeHtml(value);
 }
 
+function installPanelCollapseStyles() {
+  const style = document.createElement('style');
+  style.textContent = `
+    .panel > h2 {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .panel > h2::after {
+      content: " ▾";
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .panel.collapsed > h2 {
+      margin-bottom: 0;
+    }
+
+    .panel.collapsed > h2::after {
+      content: " ▸";
+    }
+
+    .panel.collapsed > :not(h2) {
+      display: none !important;
+    }
+
+    .score-badge small {
+      display: block;
+      font-size: 10px;
+      margin-top: 2px;
+      color: var(--muted);
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 function setBusy(isBusy) {
   $('#scanNowBtn').disabled = isBusy;
   $('#reloadPluginsBtn').disabled = isBusy;
   $('#saveSettingsBtn').disabled = isBusy;
   $('#clearDedupeBtn').disabled = isBusy;
+
+  const clearLearningBtn = $('#clearLearningBtn');
+  if (clearLearningBtn) clearLearningBtn.disabled = isBusy;
 }
 
 function renderPlugins(plugins) {
@@ -58,6 +98,30 @@ function renderPlugins(plugins) {
   }
 }
 
+function renderLearningStats(stats) {
+  if (!stats) return;
+
+  const feedbackCount = $('#learningFeedbackCount');
+  const termCount = $('#learningTermCount');
+  const topTerms = $('#topLearnedTerms');
+
+  if (!feedbackCount || !termCount || !topTerms) return;
+
+  feedbackCount.textContent = String(stats.feedbackCount || 0);
+  termCount.textContent = String(stats.learnedTermCount || 0);
+
+  const boosted = (stats.boosted || [])
+    .slice(0, 5)
+    .map(x => `${x.term} +${x.weight}`);
+
+  const penalized = (stats.penalized || [])
+    .slice(0, 5)
+    .map(x => `${x.term} ${x.weight}`);
+
+  const terms = [...boosted, ...penalized];
+  topTerms.textContent = terms.length ? terms.join(', ') : '(none yet)';
+}
+
 function renderResults(payload) {
   const meta = $('#resultsMeta');
   const list = $('#resultsList');
@@ -73,6 +137,10 @@ function renderResults(payload) {
   $('#summaryText').textContent =
     `Scan finished. ${payload.totalFreshMatches} new scored hit(s), ${payload.totalDuplicateMatches} duplicate(s).`;
 
+  if (payload.learningStats) {
+    renderLearningStats(payload.learningStats);
+  }
+
   meta.innerHTML = `
     <div class="meta-pill">Plugins: ${payload.pluginCount}</div>
     <div class="meta-pill">New: ${payload.totalFreshMatches}</div>
@@ -85,8 +153,16 @@ function renderResults(payload) {
     return;
   }
 
-  for (const item of payload.freshFound) {
-    const positive = (item.matchedPositive || [])
+    // add new results without duplicates
+for (const item of payload.freshFound) {
+  if (!persistentResults.find(x => x.dedupeKey === item.dedupeKey)) {
+    persistentResults.push(item);
+  }
+}
+
+// render everything we have
+for (const item of persistentResults) {
+	const positive = (item.matchedPositive || [])
       .map(x => `<span class="term positive">+${escapeHtml(x.term)} (${escapeHtml(x.score)})</span>`)
       .join('');
 
@@ -94,7 +170,12 @@ function renderResults(payload) {
       .map(x => `<span class="term negative">${escapeHtml(x.term)} (${escapeHtml(x.score)})</span>`)
       .join('');
 
+    const learning = (item.learningHits || [])
+      .map(x => `<span class="term">${escapeHtml(x.term)} (${escapeHtml(x.score)})</span>`)
+      .join('');
+
     const itemJson = escapeHtmlAttr(JSON.stringify(item));
+    const learnedScore = Number(item.learnedScore || 0);
 
     const card = document.createElement('div');
     card.className = 'result-card';
@@ -105,7 +186,10 @@ function renderResults(payload) {
           <div class="result-title">${escapeHtml(item.title || '(untitled)')}</div>
           <div class="result-source">${escapeHtml(item.pluginName || '')}</div>
         </div>
-        <div class="score-badge">${escapeHtml(item.score || 0)}</div>
+        <div class="score-badge">
+          ${escapeHtml(item.score || 0)}
+          ${learnedScore !== 0 ? `<small>${learnedScore > 0 ? '+' : ''}${escapeHtml(learnedScore)} learned</small>` : ''}
+        </div>
       </div>
 
       ${item.link ? `
@@ -118,6 +202,7 @@ function renderResults(payload) {
 
       ${positive ? `<div class="term-group"><strong>Matched:</strong> ${positive}</div>` : ''}
       ${negative ? `<div class="term-group"><strong>Penalties:</strong> ${negative}</div>` : ''}
+      ${learnedScore !== 0 ? `<div class="term-group"><strong>Learning:</strong> ${learning || escapeHtml(learnedScore)}</div>` : ''}
 
       <div class="term-group">
         <button class="learn-btn" data-vote="up" data-item="${itemJson}">Useful</button>
@@ -143,6 +228,16 @@ function renderResults(payload) {
       const item = JSON.parse(target.getAttribute('data-item') || '{}');
 
       const result = await window.feretoryAPI.sendLearningFeedback(item, vote);
+     
+	    if (result.ok) {
+  const card = target.closest('.result-card');
+  if (card) card.remove();
+
+  persistentResults = persistentResults.filter(x => x.dedupeKey !== item.dedupeKey);
+}
+      if (result.ok && result.learningStats) {
+        renderLearningStats(result.learningStats);
+      }
 
       $('#summaryText').textContent = result.ok
         ? vote === 'up'
@@ -179,6 +274,8 @@ async function refreshAppState() {
   $('#lastScanAt').textContent = formatDateTime(appState.settings.lastScanAt);
   $('#pluginsDir').textContent = appState.pluginsDir || '(unknown)';
   $('#historyCount').textContent = String(appState.dedupeStats?.historyCount || 0);
+
+  renderLearningStats(appState.learningStats);
 
   currentEffectiveSoundPath = appState.settings.effectiveSoundPath || '';
   $('#soundFilePath').textContent = appState.settings.soundFilePath || (currentEffectiveSoundPath || '(bundled default or none)');
@@ -225,6 +322,7 @@ async function runScan() {
     const latest = await window.feretoryAPI.getState();
     $('#lastScanAt').textContent = formatDateTime(latest.settings.lastScanAt);
     $('#historyCount').textContent = String(latest.dedupeStats?.historyCount || 0);
+    renderLearningStats(latest.learningStats);
     currentEffectiveSoundPath = latest.settings.effectiveSoundPath || currentEffectiveSoundPath;
     $('#soundFilePath').textContent = latest.settings.soundFilePath || (currentEffectiveSoundPath || '(bundled default or none)');
   } catch (error) {
@@ -294,12 +392,44 @@ async function clearDedupeHistory() {
   }
 }
 
+async function clearLearning() {
+  const result = await window.feretoryAPI.clearLearning();
+
+  if (result.ok) {
+    renderLearningStats(result.learningStats);
+    $('#summaryText').textContent = 'Learning reset.';
+  }
+}
+
+function bindPanelCollapse() {
+  for (const panel of document.querySelectorAll('.sidebar .panel')) {
+    const title = panel.querySelector('h2');
+    if (!title) continue;
+
+    const panelName = title.textContent.trim();
+    const storageKey = `feretory.panel.${panelName}.collapsed`;
+
+    if (localStorage.getItem(storageKey) === 'true') {
+      panel.classList.add('collapsed');
+    }
+
+    title.addEventListener('click', () => {
+      panel.classList.toggle('collapsed');
+      localStorage.setItem(storageKey, panel.classList.contains('collapsed') ? 'true' : 'false');
+    });
+  }
+}
+
 function bindEvents() {
   $('#saveSettingsBtn').addEventListener('click', saveSettings);
   $('#scanNowBtn').addEventListener('click', runScan);
   $('#choosePluginsDirBtn').addEventListener('click', choosePluginsFolder);
   $('#reloadPluginsBtn').addEventListener('click', reloadPlugins);
   $('#clearDedupeBtn').addEventListener('click', clearDedupeHistory);
+
+  const clearLearningBtn = $('#clearLearningBtn');
+  if (clearLearningBtn) clearLearningBtn.addEventListener('click', clearLearning);
+
   $('#chooseSoundBtn').addEventListener('click', chooseSoundFile);
   $('#clearSoundBtn').addEventListener('click', clearSoundFile);
   $('#testSoundBtn').addEventListener('click', testSound);
@@ -319,6 +449,10 @@ function bindEvents() {
     renderResults(payload);
     $('#lastScanAt').textContent = formatDateTime(payload.finishedAt);
 
+    if (payload.learningStats) {
+      renderLearningStats(payload.learningStats);
+    }
+
     if (payload.sound?.shouldPlay && payload.sound?.filePath) {
       await playSound(payload.sound.filePath, payload.sound.volume);
     }
@@ -326,7 +460,9 @@ function bindEvents() {
 }
 
 async function init() {
+  installPanelCollapseStyles();
   bindEvents();
+  bindPanelCollapse();
   await refreshAppState();
 }
 

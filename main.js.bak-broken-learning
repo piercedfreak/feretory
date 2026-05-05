@@ -250,18 +250,6 @@ function recordLearningFeedback(item, vote) {
   }
 
   const learning = getLearning();
-
-  // 🔑 stable key per item (prevents spam voting)
-  const voteKey = item.dedupeKey || item.link || `${item.pluginId}|${item.title}`;
-
-  // 🚫 block duplicate votes
-  if ((learning.feedback || []).some(f => f.voteKey === voteKey)) {
-    return {
-      ok: false,
-      error: 'Already voted on this item.'
-    };
-  }
-
   const delta = normalizedVote === 'up' ? 1 : -2;
   const terms = extractLearningTerms(item || {});
   const termWeights = { ...(learning.termWeights || {}) };
@@ -274,7 +262,6 @@ function recordLearningFeedback(item, vote) {
     ...(learning.feedback || []),
     {
       vote: normalizedVote,
-      voteKey, // ✅ new
       pluginId: item.pluginId || '',
       pluginName: item.pluginName || '',
       title: item.title || '',
@@ -1128,10 +1115,8 @@ ipcMain.handle('dedupe:clear', async () => {
 ipcMain.handle('learning:feedback', async (_event, item, vote) => {
   return recordLearningFeedback(item, vote);
 	// prevent duplicate voting on same item
- const voteKey = item.dedupeKey || item.link || `${item.pluginId}|${item.title}`;
-
-if ((learning.feedback || []).some(f => f.voteKey === voteKey)) { 
-	return {
+if ((learning.feedback || []).some(f => f.dedupeKey === item.dedupeKey)) {
+  return {
     ok: false,
     error: 'Already voted on this item.'
   };
