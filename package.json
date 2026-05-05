@@ -6,14 +6,16 @@
   "main": "main.js",
   "author": "piercedfreak",
   "license": "GPL-3.0",
- "scripts": {
-  "start": "electron ."
-}, 
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win"
+  },
   "dependencies": {
     "cheerio": "^1.1.0",
     "electron-store": "^10.0.1"
   },
   "devDependencies": {
-    "electron": "^41.5.0"
+    "electron": "^41.5.0",
+    "electron-builder": "^26.8.1"
   }
 }
