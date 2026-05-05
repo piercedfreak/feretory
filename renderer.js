@@ -94,6 +94,13 @@ function renderResults(payload) {
       .map(x => `<span class="term negative">${escapeHtml(x.term)} (${escapeHtml(x.score)})</span>`)
       .join('');
 
+    const learning = (item.learningHits || [])
+      .map(x => `<span class="term">${escapeHtml(x.term)} (${escapeHtml(x.score)})</span>`)
+      .join('');
+
+    const itemJson = escapeHtmlAttr(JSON.stringify(item));
+    const learnedScore = Number(item.learnedScore || 0);
+
     const card = document.createElement('div');
     card.className = 'result-card';
 
@@ -103,7 +110,10 @@ function renderResults(payload) {
           <div class="result-title">${escapeHtml(item.title || '(untitled)')}</div>
           <div class="result-source">${escapeHtml(item.pluginName || '')}</div>
         </div>
-        <div class="score-badge">${escapeHtml(item.score || 0)}</div>
+        <div class="score-badge">
+          ${escapeHtml(item.score || 0)}
+          ${learnedScore !== 0 ? `<small>${learnedScore > 0 ? '+' : ''}${escapeHtml(learnedScore)} learned</small>` : ''}
+        </div>
       </div>
 
       ${item.link ? `
@@ -116,6 +126,12 @@ function renderResults(payload) {
 
       ${positive ? `<div class="term-group"><strong>Matched:</strong> ${positive}</div>` : ''}
       ${negative ? `<div class="term-group"><strong>Penalties:</strong> ${negative}</div>` : ''}
+      ${learnedScore !== 0 ? `<div class="term-group"><strong>Learning:</strong> ${learning || escapeHtml(learnedScore)}</div>` : ''}
+
+      <div class="term-group">
+        <button class="learn-btn" data-vote="up" data-item="${itemJson}">Useful</button>
+        <button class="learn-btn" data-vote="down" data-item="${itemJson}">Not useful</button>
+      </div>
     `;
 
     list.appendChild(card);
@@ -126,6 +142,21 @@ function renderResults(payload) {
       event.preventDefault();
       const url = event.currentTarget.getAttribute('data-url');
       if (url) await window.feretoryAPI.openExternal(url);
+    });
+  }
+
+  for (const button of list.querySelectorAll('.learn-btn')) {
+    button.addEventListener('click', async (event) => {
+      const target = event.currentTarget;
+      const vote = target.getAttribute('data-vote');
+      const item = JSON.parse(target.getAttribute('data-item') || '{}');
+      const result = await window.feretoryAPI.sendLearningFeedback(item, vote);
+
+      $('#summaryText').textContent = result.ok
+        ? vote === 'up'
+          ? 'Learned: show more results like that.'
+          : 'Learned: avoid results like that.'
+        : result.error || 'Learning failed.';
     });
   }
 }
