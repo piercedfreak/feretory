@@ -9,6 +9,8 @@ contextBridge.exposeInMainWorld('feretoryAPI', {
   choosePluginsDirectory: () => ipcRenderer.invoke('plugins:choose-directory'),
   reloadPlugins: () => ipcRenderer.invoke('plugins:reload'),
   clearDedupeHistory: () => ipcRenderer.invoke('dedupe:clear'),
+  sendLearningFeedback: (item, vote) => ipcRenderer.invoke('learning:feedback', item, vote),
+  clearLearning: () => ipcRenderer.invoke('learning:clear'),
   openExternal: (url) => ipcRenderer.invoke('shell:openExternal', url),
   openPath: (targetPath) => ipcRenderer.invoke('shell:openPath', targetPath),
   onScanComplete: (callback) => {
