@@ -2,20 +2,70 @@
   "name": "feretory",
   "productName": "feretory",
   "version": "2.0.0",
-  "description": "feretory - simple scored scanner",
+  "description": "adaptive scored scanner with learning feedback",
   "main": "main.js",
   "author": "piercedfreak",
   "license": "GPL-3.0",
+
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --win"
   },
+
   "dependencies": {
     "cheerio": "^1.1.0",
     "electron-store": "^10.0.1"
   },
+
   "devDependencies": {
     "electron": "^41.5.0",
     "electron-builder": "^26.8.1"
+  },
+
+  "build": {
+    "productName": "feretory",
+    "appId": "com.piercedfreak.feretory",
+
+    "directories": {
+      "output": "dist"
+    },
+
+    "files": [
+      "**/*",
+      "!node_modules/.cache/**",
+      "!dist/**"
+    ],
+
+    "extraResources": [
+      {
+        "from": "plugins",
+        "to": "plugins"
+      },
+      {
+        "from": "assets",
+        "to": "assets"
+      }
+    ],
+
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "assets/icon.ico"
+    },
+
+    "portable": {
+      "artifactName": "feretory-${version}-portable.${ext}"
+    },
+
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "feretory"
+    }
   }
 }
