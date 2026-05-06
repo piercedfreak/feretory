@@ -4,7 +4,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const Store = require('electron-store').default;
 const cheerio = require('cheerio');
-
+app.setName('feretory');
 const store = new Store({
   defaults: {
     scanIntervalMinutes: 5,
@@ -50,6 +50,20 @@ function getIconPath() {
 
   if (fs.existsSync(icoPath)) return icoPath;
   if (fs.existsSync(pngPath)) return pngPath;
+  return undefined;
+}
+
+function getTrayIconPath() {
+  const trayIco = getAssetPath('assets', 'tray.ico');
+  const trayPng = getAssetPath('assets', 'tray.png');
+  const iconIco = getAssetPath('assets', 'icon.ico');
+  const iconPng = getAssetPath('assets', 'icon.png');
+
+  if (fs.existsSync(trayIco)) return trayIco;
+  if (fs.existsSync(iconIco)) return iconIco;
+  if (fs.existsSync(trayPng)) return trayPng;
+  if (fs.existsSync(iconPng)) return iconPng;
+
   return undefined;
 }
 
@@ -661,25 +675,13 @@ function buildTrayMenu() {
 }
 
 function createTray() {
-  const iconPath = getIconPath();
-  if (!iconPath || tray) return;
+ const iconPath = getAssetPath('assets', 'tray.ico'); 
+	if (!iconPath || tray) return;
 
   tray = new Tray(iconPath);
   tray.setToolTip('feretory');
   tray.setContextMenu(buildTrayMenu());
 
-  tray.on('click', () => {
-    if (!mainWindow) {
-      createWindow();
-      return;
-    }
-
-    if (mainWindow.isVisible()) {
-      mainWindow.hide();
-    } else {
-      showMainWindow();
-    }
-  });
 
   tray.on('double-click', () => {
     showMainWindow();
